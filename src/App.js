@@ -1,23 +1,30 @@
-import logo from './logo.svg';
+import { useState } from 'react';
 import './App.css';
+import { WEATHER_API_KEY, WEATHER_API_URL } from './api';
+import CurrentWeather from './components/current-weather/current-weather';
+import Search from './components/search/search';
 
 function App() {
+  const [currentWeather, setCurrentWeather] = useState(null);
+
+  const handleOnSearchChange = (searchData) => {
+    const [lat, lon] = searchData.value.split(" ");
+    const currentWeatherFetch = fetch(
+      `${WEATHER_API_URL}/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`
+    );
+    Promise.all([currentWeatherFetch])
+      .then(async (response) => {
+        const weatherResponse = await response[0].json();
+        setCurrentWeather({ city: searchData.label, ...weatherResponse });
+      })
+      .catch(console.log);
+
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container">
+      <Search onSearchChange={handleOnSearchChange}/>
+      {currentWeather && <CurrentWeather data={currentWeather} />}
     </div>
   );
 }
